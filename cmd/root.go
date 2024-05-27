@@ -35,6 +35,7 @@ func GetRootCommand() *cobra.Command {
 			Use:     "newed",
 			Version: fmt.Sprintf("%s\n%s", Version, Date),
 			Short:   "newed creates projects from templates",
+			Args:    cobra.NoArgs,
 			Run: func(cmd *cobra.Command, _ []string) {
 				cfg, err := config.New(config.WithFile(cfgFile))
 				if err != nil {
@@ -47,8 +48,10 @@ func GetRootCommand() *cobra.Command {
 	}
 
 	rootCmd.Flags().StringVarP(&cfgFile, "config-file", "c", "", "configuration file")
+	rootCmd.Flags().StringSliceP("templates", "t", []string{}, "template(s) to apply")
 
 	rootCmd.AddCommand(GetListCmd())
+	rootCmd.AddCommand(GetCopyCmd())
 
 	return rootCmd
 }

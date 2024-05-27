@@ -2,6 +2,8 @@ package cmd
 
 import (
 	"fmt"
+	"io/fs"
+	"os"
 	"path/filepath"
 	"strings"
 
@@ -21,13 +23,12 @@ func GetListCmd() *cobra.Command {
 		listCmd = &cobra.Command{
 			Use:     "list",
 			Aliases: []string{"l", "ls"},
-			Args:    cobra.MinimumNArgs(1),
 			Short:   "list available templates",
 			RunE:    runListCmd,
 		}
-	}
 
-	listCmd.Flags().BoolVarP(&showSub, "show-sub-templates", "s", false, "show sub-templates")
+		listCmd.Flags().BoolVarP(&showSub, "show-sub-templates", "s", false, "show sub-templates")
+	}
 
 	return listCmd
 }
@@ -40,38 +41,45 @@ func runListCmd(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
+	tmpls := make(newed.Templates)
 	dirs := []string{}
 
 	for _, d := range args {
 		var dir string
 		dir, err = filepath.Abs(d)
 		if err != nil {
-			return fmt.Errorf("target directory: %w", err)
+			return err
+		}
+
+		var info fs.FileInfo
+		info, err = os.Stat(dir)
+		if err != nil {
+			return err
+		}
+
+		if !info.IsDir() {
+			return fmt.Errorf("%s is not a directory", dir)
 		}
 
 		dirs = append(dirs, dir)
 	}
 
-	tmplList, err := newed.New(cfg, newed.WithDirectory(dirs...))
-	if err != nil {
-		return fmt.Errorf("creating list: %w", err)
+	templateDirs := append(cfg.GetTemplateDirs(), dirs...)
+
+	if err := tmpls.Load(templateDirs...); err != nil {
+		return fmt.Errorf("loading templates: %w", err)
 	}
 
-	list, err := tmplList.GetTemplates(showSub)
-	if err != nil {
-		return err
-	}
-
-	for k, v := range list {
+	for k, v := range tmpls {
 		var tmplOut string
 
 		if showSub {
-			tmplOut = fmt.Sprintf("%s [%s]", k, strings.Join(v, ", "))
+			tmplOut = fmt.Sprintf("%s [%s]", k, strings.Join(v.Sections, ", "))
 		} else {
 			tmplOut = k
 		}
 
-		fmt.Println(tmplOut)
+		cmd.Println(tmplOut)
 	}
 
 	return nil
