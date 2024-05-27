@@ -10,7 +10,6 @@ import (
 	"time"
 
 	"github.com/lmittmann/tint"
-	"github.com/spf13/afero"
 	"github.com/spf13/viper"
 )
 
@@ -27,7 +26,6 @@ type Config struct {
 	cfgFile     string
 	cfgFileType string
 	logger      *slog.Logger
-	fs          afero.Fs
 }
 
 func New(options ...func(*Config)) (*Config, error) {
@@ -46,12 +44,6 @@ func New(options ...func(*Config)) (*Config, error) {
 	for _, option := range options {
 		option(&cfg)
 	}
-
-	// set up fs
-	if cfg.fs == nil {
-		cfg.fs = afero.NewOsFs()
-	}
-	cfg.viper.SetFs(cfg.fs)
 
 	// set up viper
 	cfg.setViperConfigFile()
@@ -149,15 +141,6 @@ func (c *Config) setViperConfigFile() {
 	c.viper.AddConfigPath(c.dir)
 }
 
-// WithFs sets the file system.
-//
-// If the file system is nil, a new OS file system is used.
-func WithFs(fs afero.Fs) func(*Config) {
-	return func(c *Config) {
-		c.fs = fs
-	}
-}
-
 // GetConfigFileUsed returns the configuration file used.
 //
 // If no configuration file is loaded, an empty string is returned. Failure to read a
@@ -170,6 +153,6 @@ func (c Config) GetLogger() *slog.Logger {
 	return c.logger
 }
 
-func (c Config) GetFs() afero.Fs {
-	return c.fs
+func (c Config) GetTemplateDirs() []string {
+	return c.viper.GetStringSlice("template.dirs")
 }

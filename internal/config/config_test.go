@@ -162,16 +162,12 @@ func TestNew(t *testing.T) {
 }
 
 func TestDefaultConfig(t *testing.T) {
-	tfs := afero.NewMemMapFs()
-
 	// execute function under test
-	got, err := New(WithFs(tfs))
+	got, err := New()
 
 	require.NoError(t, err)
 	if err == nil {
 		assert.Empty(t, got.GetConfigFileUsed(), "no config file used")
-
 		assert.NotNil(t, got.GetLogger(), "default logger should not be nil")
-		assert.NotNil(t, got.GetFs(), "default fs should not be nil")
 	}
 }
