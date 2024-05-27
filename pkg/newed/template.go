@@ -78,8 +78,8 @@ func (t Templates) Add(dir string) error {
 
 	t[name] = Template{
 		Name:     name,
-		Base:     has_base,
-		Dir:      dir,
+		Base:     hasBase,
+		Dir:      filepath.Dir(dir),
 		Sections: subs,
 	}
 
@@ -98,7 +98,8 @@ func readTemplateContent(dir string) ([]string, bool, error) {
 	for _, e := range entries {
 		switch {
 		case e.IsDir() && e.Name() == BaseDirName:
-			has_base = true
+			hasBase = true
+			names = append(names, e.Name())
 		case e.IsDir():
 			names = append(names, e.Name())
 		default:
