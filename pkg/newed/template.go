@@ -5,6 +5,9 @@ import (
 	"log/slog"
 	"os"
 	"path/filepath"
+	"strings"
+
+	"github.com/asphaltbuffet/newed/internal/config"
 )
 
 const (
@@ -20,14 +23,25 @@ type Template struct {
 
 type Templates map[string]Template
 
+// New creates a new Templates object from the provided config.
+func New(cfg *config.Config) (Templates, error) {
+	t := make(Templates)
+
+	if err := t.Load(cfg.GetTemplateDirs()...); err != nil {
+		return nil, err
+	}
+
+	return t, nil
+}
+
+// Load reads the provided directories and adds any valid templates to the Templates object.
 func (t Templates) Load(dirs ...string) error {
 	logger := slog.New(slog.NewTextHandler(os.Stderr, &slog.HandlerOptions{Level: slog.LevelWarn}))
 
 	for _, d := range dirs {
 		entries, err := os.ReadDir(d)
 		if err != nil {
-			// return fmt.Errorf("reading directory: %w", err)
-			fmt.Println("reading directory:", err)
+			continue
 		}
 
 		for _, entry := range entries {
@@ -42,6 +56,8 @@ func (t Templates) Load(dirs ...string) error {
 	return nil
 }
 
+// Add the provided template to Templates object if new; otherwise, replaces existing template
+// with the same name.
 func (t Templates) Add(dir string) error {
 	info, err := os.Stat(dir)
 	if err != nil {
@@ -76,19 +92,39 @@ func readTemplateContent(dir string) ([]string, bool, error) {
 		return nil, false, err
 	}
 
-	var has_base bool
-	subs := []string{}
+	names := make([]string, 0, len(entries))
+	hasBase := false
 
 	for _, e := range entries {
 		switch {
 		case e.IsDir() && e.Name() == BaseDirName:
 			has_base = true
 		case e.IsDir():
-			subs = append(subs, e.Name())
+			names = append(names, e.Name())
 		default:
 			// ignore files
 		}
 	}
 
-	return subs, has_base, nil
+	return names, hasBase, nil
+}
+
+func Expand(templates ...string) []string {
+	expanded := []string{}
+
+	for _, t := range templates {
+		// optional templates show up as `base+opt1+opt2`
+		additions := strings.Split(t, "+")
+
+		base := additions[0]
+		// always add the base template
+		// FIX: handle if there is no base template? or do we just assume it will fail quietly?
+		expanded = append(expanded, filepath.Join(base, BaseDirName))
+
+		for i := 1; i < len(additions); i++ {
+			expanded = append(expanded, filepath.Join(base, additions[i]))
+		}
+	}
+
+	return expanded
 }

@@ -2,8 +2,6 @@ package cmd
 
 import (
 	"fmt"
-	"io/fs"
-	"os"
 	"path/filepath"
 	"strings"
 
@@ -41,45 +39,47 @@ func runListCmd(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	tmpls := make(newed.Templates)
-	dirs := []string{}
-
-	for _, d := range args {
-		var dir string
-		dir, err = filepath.Abs(d)
-		if err != nil {
-			return err
-		}
-
-		var info fs.FileInfo
-		info, err = os.Stat(dir)
-		if err != nil {
-			return err
-		}
-
-		if !info.IsDir() {
-			return fmt.Errorf("%s is not a directory", dir)
-		}
-
-		dirs = append(dirs, dir)
+	tmpls, err := newed.New(cfg)
+	if err != nil {
+		return err
 	}
 
-	templateDirs := append(cfg.GetTemplateDirs(), dirs...)
-
-	if err := tmpls.Load(templateDirs...); err != nil {
-		return fmt.Errorf("loading templates: %w", err)
+	if err = tmpls.Load(args...); err != nil {
+		return err
 	}
 
-	for k, v := range tmpls {
-		var tmplOut string
+	// get list of directories
+	dirs := make(map[string][]string)
+	for name, template := range tmpls {
+		d, _ := filepath.Abs(template.Dir)
+		templateDir := filepath.Dir(d)
 
-		if showSub {
-			tmplOut = fmt.Sprintf("%s [%s]", k, strings.Join(v.Sections, ", "))
-		} else {
-			tmplOut = k
+		if _, ok := dirs[templateDir]; !ok {
+			dirs[templateDir] = []string{}
 		}
 
-		cmd.Println(tmplOut)
+		dirs[templateDir] = append(dirs[templateDir], name)
+	}
+
+	// print out the templates
+	for dir, names := range dirs {
+		cmd.Println(fmt.Sprintf("%s: ", dir))
+		for _, name := range names {
+			t := tmpls[name]
+
+			sb := strings.Builder{}
+
+			sb.WriteString("    ")
+			sb.WriteString(t.Name)
+
+			if t.Base {
+				sb.WriteString("*")
+			}
+
+			sb.WriteString(fmt.Sprintf(" [%s]", strings.Join(t.Sections, ", ")))
+
+			cmd.Println(sb.String())
+		}
 	}
 
 	return nil

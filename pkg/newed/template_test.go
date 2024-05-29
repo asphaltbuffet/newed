@@ -1,4 +1,4 @@
-package newed
+package newed_test
 
 import (
 	"os"
@@ -7,29 +7,40 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"github.com/asphaltbuffet/newed/pkg/newed"
 )
 
-func TestTemplates_Add(t *testing.T) {
+func Test_Load(t *testing.T) {
 	// set up test directories
-	testSrc := t.TempDir()
-	testDest := t.TempDir()
-	require.NotEqual(t, testSrc, testDest)
+	testTeardown, testSrc, _ := testTemplateSetup(t)
+	defer testTeardown()
 
-	os.MkdirAll(filepath.Join(testSrc, "fake-1", "_base"), 0o755)
-	os.CreateTemp(filepath.Join(testSrc, "fake-1", "_base"), "fake_*.txt")
+	testTemplates := make(newed.Templates)
 
-	os.MkdirAll(filepath.Join(testSrc, "fake-2", "_base"), 0o755)
-	os.CreateTemp(filepath.Join(testSrc, "fake-2", "_base"), "fake_*.txt")
+	t.Run("add new template to empty", func(t *testing.T) {
+		require.NoError(t, testTemplates.Load(testSrc))
+		assert.Len(t, testTemplates, 3)
+		assert.Contains(t, testTemplates, "fake-1")
+		assert.Contains(t, testTemplates, "fake-2")
+		assert.Contains(t, testTemplates, "fake-3")
+	})
 
-	os.MkdirAll(filepath.Join(testSrc, "fake-2", "fake2sub1"), 0o755)
-	os.CreateTemp(filepath.Join(testSrc, "fake-2", "fake2sub1"), "fake_*.txt")
+	t.Run("load invalid dir", func(t *testing.T) {
+		testTemplates = make(newed.Templates)
+		require.NoError(t, testTemplates.Load("bad-dir"))
+		assert.Empty(t, testTemplates)
+	})
+}
 
-	os.MkdirAll(filepath.Join(testSrc, "fake-2", "fake2sub2"), 0o755)
-	os.CreateTemp(filepath.Join(testSrc, "fake-2", "fake2sub2"), "fake_*.txt")
+func Test_Add(t *testing.T) {
+	// set up test directories
+	testTeardown, testSrc, _ := testTemplateSetup(t)
+	defer testTeardown()
 
-	os.MkdirAll(filepath.Join(testSrc, "fake-3"), 0o755)
+	fakeFile, _ := os.CreateTemp(testSrc, "fakeFile_*.txt")
 
-	test_templates := make(Templates)
+	testTemplates := make(newed.Templates)
 
 	t.Run("add new template to empty", func(t *testing.T) {
 		require.NoError(t, testTemplates.Add(filepath.Join(testSrc, "fake-1")))
@@ -65,4 +76,64 @@ func TestTemplates_Add(t *testing.T) {
 		assert.Len(t, testTemplates, 3)
 		require.NotContains(t, testTemplates, "no-fake-here")
 	})
+
+	t.Run("fail to add non-directory", func(t *testing.T) {
+		err := testTemplates.Add(fakeFile.Name())
+		require.ErrorIs(t, err, os.ErrInvalid)
+
+		assert.Len(t, testTemplates, 3)
+	})
+
+	t.Run("fail due to permissions", func(t *testing.T) {
+		err := testTemplates.Add(filepath.Join(testSrc, "perm"))
+		require.Error(t, err)
+		assert.ErrorIs(t, err, os.ErrPermission)
+	})
+}
+
+func Test_Expand(t *testing.T) {
+	type args struct {
+		templates []string
+	}
+
+	tests := []struct {
+		name string
+		args args
+		want []string
+	}{
+		{
+			name: "single base template",
+			args: args{
+				templates: []string{"fake"},
+			},
+			want: []string{"fake/_base"},
+		},
+		{
+			name: "single with additions",
+			args: args{
+				templates: []string{"fake+fake_add1+fake_add2"},
+			},
+			want: []string{"fake/_base", "fake/fake_add1", "fake/fake_add2"},
+		},
+		{
+			name: "two base templates",
+			args: args{
+				templates: []string{"fake", "fake2"},
+			},
+			want: []string{"fake/_base", "fake2/_base"},
+		},
+		{
+			name: "two base templates with additions",
+			args: args{
+				templates: []string{"fake+fake_add1+fake_add2", "fake2+fake2_add1"},
+			},
+			want: []string{"fake/_base", "fake/fake_add1", "fake/fake_add2", "fake2/_base", "fake2/fake2_add1"},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			assert.Equal(t, tt.want, newed.Expand(tt.args.templates...))
+		})
+	}
 }
