@@ -11,10 +11,8 @@ builds:
       - CGO_ENABLED=0
     goos:
       - linux
-      - windows
       - darwin
     goarch:
-      - "386"
       - amd64
       - arm
       - arm64
@@ -32,11 +30,7 @@ archives:
       {{- if eq .Arch "amd64" }}x86-64
       {{- else if eq .Arch "arm" }}arm-v6
       {{- else if eq .Arch "arm64" }}arm-v8
-      {{- else if eq .Arch "386" }}i386
       {{- else }}{{ .Arch}}{{ end }}
-    format_overrides:
-      - goos: windows
-        format: zip
     files:
       - info:
           mtime: "{{ .CommitDate }}"
