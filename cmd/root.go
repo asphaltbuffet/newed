@@ -35,8 +35,8 @@ func GetRootCommand() *cobra.Command {
 			Args:    cobra.NoArgs,
 		}
 
-		rootCmd.Flags().StringP("config", "c", "", "configuration file")
-		rootCmd.Flags().StringSliceP("templates", "t", []string{}, "template(s) to apply")
+		rootCmd.PersistentFlags().StringP("config", "c", "", "configuration file")
+		rootCmd.PersistentFlags().StringSliceP("templates", "t", []string{}, "template(s) to apply")
 
 		rootCmd.AddCommand(GetListCmd())
 		rootCmd.AddCommand(GetApplyCmd())
