@@ -1,6 +1,7 @@
 package newed_test
 
 import (
+	"path/filepath"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -42,6 +43,23 @@ func TestTemplates_Apply(t *testing.T) {
 			assertion: assert.NoError,
 		},
 		{
+			name: "dry run",
+			args: args{
+				tCollection: map[string]newed.Template{
+					"fake-1": {
+						Name:     "fake-1",
+						Dir:      testSrc,
+						Base:     true,
+						Sections: []string{"_base"},
+					},
+				},
+				selected: []string{"fake-1"},
+				dest:     testDest,
+				noop:     true,
+			},
+			assertion: assert.NoError,
+		},
+		{
 			name: "apply invalid template",
 			args: args{
 				tCollection: map[string]newed.Template{
@@ -54,6 +72,22 @@ func TestTemplates_Apply(t *testing.T) {
 				},
 				selected: []string{"fake-invalid"},
 				dest:     testDest,
+			},
+			assertion: assert.Error,
+		},
+		{
+			name: "invalid dest",
+			args: args{
+				tCollection: map[string]newed.Template{
+					"fake-1": {
+						Name:     "fake-1",
+						Dir:      testSrc,
+						Base:     true,
+						Sections: []string{"_base"},
+					},
+				},
+				selected: []string{"fake-invalid"},
+				dest:     filepath.Join(testDest, "invalid", "path"),
 			},
 			assertion: assert.Error,
 		},
