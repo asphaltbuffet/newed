@@ -1,9 +1,9 @@
 ## newed list
 
-list available templates
+list all templates
 
 ```
-newed list [flags]
+newed list [-s|--show-sub-templates] [template dir]... [flags]
 ```
 
 ### Options

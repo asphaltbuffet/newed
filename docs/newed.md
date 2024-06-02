@@ -14,5 +14,5 @@ newed creates projects from templates
 
 * [newed apply](newed_apply.md)	 - populate directory with template(s)
 * [newed completion](newed_completion.md)	 - Generate the autocompletion script for the specified shell
-* [newed list](newed_list.md)	 - list available templates
+* [newed list](newed_list.md)	 - list all templates
 

@@ -137,3 +137,22 @@ func Test_Expand(t *testing.T) {
 		})
 	}
 }
+
+func TestTemplates_GetAllByDir(t *testing.T) {
+	tests := []struct {
+		name string
+		tr   newed.Templates
+		want map[string][]newed.Template
+	}{
+		{
+			name: "no templates",
+			tr:   map[string]newed.Template{},
+			want: map[string][]newed.Template{},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			assert.Equal(t, tt.want, tt.tr.GetAllByDir())
+		})
+	}
+}

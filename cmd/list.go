@@ -2,7 +2,6 @@ package cmd
 
 import (
 	"fmt"
-	"path/filepath"
 	"strings"
 
 	"github.com/spf13/cobra"
@@ -19,9 +18,9 @@ var (
 func GetListCmd() *cobra.Command {
 	if listCmd == nil {
 		listCmd = &cobra.Command{
-			Use:     "list",
+			Use:     "list [-s|--show-sub-templates] [template dir]...",
 			Aliases: []string{"l", "ls"},
-			Short:   "list available templates",
+			Short:   "list all templates",
 			RunE:    runListCmd,
 		}
 
@@ -39,48 +38,34 @@ func runListCmd(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	tmpls, err := newed.New(cfg)
+	tColl, err := newed.New(cfg)
 	if err != nil {
 		return err
 	}
 
-	if err = tmpls.Load(args...); err != nil {
+	if err = tColl.Load(args...); err != nil {
 		return err
 	}
 
-	// get list of directories
-	dirs := make(map[string][]string)
-	for name, template := range tmpls {
-		d, _ := filepath.Abs(template.Dir)
-		templateDir := filepath.Dir(d)
+	PrintList(cmd, tColl.GetAllByDir())
 
-		if _, ok := dirs[templateDir]; !ok {
-			dirs[templateDir] = []string{}
-		}
+	return nil
+}
 
-		dirs[templateDir] = append(dirs[templateDir], name)
-	}
-
+func PrintList(cmd *cobra.Command, tList map[string][]newed.Template) {
 	// print out the templates
-	for dir, names := range dirs {
-		cmd.Println(fmt.Sprintf("%s: ", dir))
-		for _, name := range names {
-			t := tmpls[name]
+	for dir, templates := range tList {
+		cmd.Println(fmt.Sprintf("%s:", dir))
 
+		for _, t := range templates {
 			sb := strings.Builder{}
 
 			sb.WriteString("    ")
 			sb.WriteString(t.Name)
-
-			if t.Base {
-				sb.WriteString("*")
-			}
 
 			sb.WriteString(fmt.Sprintf(" [%s]", strings.Join(t.Sections, ", ")))
 
 			cmd.Println(sb.String())
 		}
 	}
-
-	return nil
 }

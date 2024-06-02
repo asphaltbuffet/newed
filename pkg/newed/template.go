@@ -114,7 +114,7 @@ func Expand(templates ...string) []string {
 	expanded := []string{}
 
 	for _, t := range templates {
-		// optional templates show up as `base+opt1+opt2`
+		// additional templates show up as `base+opt1+opt2`
 		additions := strings.Split(t, "+")
 
 		base := additions[0]
@@ -128,4 +128,21 @@ func Expand(templates ...string) []string {
 	}
 
 	return expanded
+}
+
+func (t Templates) GetAllByDir() map[string][]Template {
+	// get list of directories
+	dirs := make(map[string][]Template)
+	for _, template := range t {
+		d, _ := filepath.Abs(template.Dir)
+		templateDir := filepath.Dir(d)
+
+		if _, ok := dirs[templateDir]; !ok {
+			dirs[templateDir] = []Template{}
+		}
+
+		dirs[templateDir] = append(dirs[templateDir], template)
+	}
+
+	return dirs
 }
