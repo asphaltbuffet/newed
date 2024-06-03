@@ -1,0 +1,38 @@
+## newed completion powershell
+
+Generate the autocompletion script for powershell
+
+### Synopsis
+
+Generate the autocompletion script for powershell.
+
+To load completions in your current shell session:
+
+	newed completion powershell | Out-String | Invoke-Expression
+
+To load completions for every new session, add the output of the above command
+to your powershell profile.
+
+
+```
+newed completion powershell [flags]
+```
+
+### Options
+
+```
+  -h, --help              help for powershell
+      --no-descriptions   disable completion descriptions
+```
+
+### Options inherited from parent commands
+
+```
+  -c, --config string       configuration file
+  -t, --templates strings   template(s) to apply
+```
+
+### SEE ALSO
+
+* [newed completion](newed_completion.md)	 - Generate the autocompletion script for the specified shell
+

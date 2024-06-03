@@ -2,7 +2,6 @@ package cmd
 
 import (
 	"fmt"
-	"path/filepath"
 	"strings"
 
 	"github.com/spf13/cobra"
@@ -19,15 +18,14 @@ var (
 func GetListCmd() *cobra.Command {
 	if listCmd == nil {
 		listCmd = &cobra.Command{
-			Use:     "list",
+			Use:     "list [-s|--show-sub-templates] [template dir]...",
 			Aliases: []string{"l", "ls"},
-			Args:    cobra.MinimumNArgs(1),
-			Short:   "list available templates",
+			Short:   "list all templates",
 			RunE:    runListCmd,
 		}
-	}
 
-	listCmd.Flags().BoolVarP(&showSub, "show-sub-templates", "s", false, "show sub-templates")
+		listCmd.Flags().BoolVarP(&showSub, "show-sub-templates", "s", false, "show sub-templates")
+	}
 
 	return listCmd
 }
@@ -40,39 +38,34 @@ func runListCmd(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	dirs := []string{}
-
-	for _, d := range args {
-		var dir string
-		dir, err = filepath.Abs(d)
-		if err != nil {
-			return fmt.Errorf("target directory: %w", err)
-		}
-
-		dirs = append(dirs, dir)
-	}
-
-	tmplList, err := newed.New(cfg, newed.WithDirectory(dirs...))
-	if err != nil {
-		return fmt.Errorf("creating list: %w", err)
-	}
-
-	list, err := tmplList.GetTemplates(showSub)
+	tColl, err := newed.New(cfg)
 	if err != nil {
 		return err
 	}
 
-	for k, v := range list {
-		var tmplOut string
-
-		if showSub {
-			tmplOut = fmt.Sprintf("%s [%s]", k, strings.Join(v, ", "))
-		} else {
-			tmplOut = k
-		}
-
-		fmt.Println(tmplOut)
+	if err = tColl.Load(args...); err != nil {
+		return err
 	}
 
+	PrintList(cmd, tColl.GetAllByDir())
+
 	return nil
+}
+
+func PrintList(cmd *cobra.Command, tList map[string][]newed.Template) {
+	// print out the templates
+	for dir, templates := range tList {
+		cmd.Println(fmt.Sprintf("%s:", dir))
+
+		for _, t := range templates {
+			sb := strings.Builder{}
+
+			sb.WriteString("    ")
+			sb.WriteString(t.Name)
+
+			sb.WriteString(fmt.Sprintf(" [%s]", strings.Join(t.Sections, ", ")))
+
+			cmd.Println(sb.String())
+		}
+	}
 }

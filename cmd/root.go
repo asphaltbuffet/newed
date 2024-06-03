@@ -6,8 +6,6 @@ import (
 	"os"
 
 	"github.com/spf13/cobra"
-
-	"github.com/asphaltbuffet/newed/internal/config"
 )
 
 // application build information set by the linker.
@@ -29,26 +27,20 @@ func Execute() {
 
 // GetRootCommand returns the root command for the CLI.
 func GetRootCommand() *cobra.Command {
-	var cfgFile string
 	if rootCmd == nil {
 		rootCmd = &cobra.Command{
 			Use:     "newed",
 			Version: fmt.Sprintf("%s\n%s", Version, Date),
 			Short:   "newed creates projects from templates",
-			Run: func(cmd *cobra.Command, _ []string) {
-				cfg, err := config.New(config.WithFile(cfgFile))
-				if err != nil {
-					cmd.PrintErr(err)
-				}
-
-				cmd.Println("config file:", cfg.GetConfigFileUsed())
-			},
+			Args:    cobra.NoArgs,
 		}
+
+		rootCmd.PersistentFlags().StringP("config", "c", "", "configuration file")
+		rootCmd.PersistentFlags().StringSliceP("templates", "t", []string{}, "template(s) to apply")
+
+		rootCmd.AddCommand(GetListCmd())
+		rootCmd.AddCommand(GetApplyCmd())
 	}
-
-	rootCmd.Flags().StringVarP(&cfgFile, "config-file", "c", "", "configuration file")
-
-	rootCmd.AddCommand(GetListCmd())
 
 	return rootCmd
 }
