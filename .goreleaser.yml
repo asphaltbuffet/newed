@@ -28,7 +28,7 @@ archives:
       {{ .Version }}-
       {{ .Os }}-
       {{ if eq .Arch "amd64" }}x86_64
-      {{ else }}{{ .Arch}}
+      {{ else }}{{ .Arch}}{{ end }}
       {{ if .Arm }}_v{{ .Arm }}{{ end }}
     files:
       - info:
