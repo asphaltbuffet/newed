@@ -9,6 +9,8 @@ on:
   workflow_dispatch:
 
 jobs:
+  govulncheck:
+    uses: asphaltbuffet/.github/.github/workflows/vulncheck.yml@main
   ci:
     name: Build and Test
     strategy:
@@ -35,7 +37,7 @@ jobs:
           go-version-file: "go.mod"
 
       - name: Build
-        run: task ci -f
+        run: task ci
 
       - name: Archive code coverage results
         uses: actions/upload-artifact@v4
