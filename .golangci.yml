@@ -1,3 +1,4 @@
+---
 # This code is licensed under the terms of the MIT license https://opensource.org/license/mit
 # Copyright (c) 2021 Marat Reymers
 
@@ -14,7 +15,8 @@ run:
 
 
 # This file contains only configs which differ from defaults.
-# All possible options can be found here https://github.com/golangci/golangci-lint/blob/master/.golangci.reference.yml
+# All possible options can be found here:
+# https://github.com/golangci/golangci-lint/blob/master/.golangci.reference.yml
 linters-settings:
   cyclop:
     # The maximal code complexity to report.
@@ -107,7 +109,8 @@ linters-settings:
         - github.com/golang/protobuf:
             recommendations:
               - google.golang.org/protobuf
-            reason: "see https://developers.google.com/protocol-buffers/docs/reference/go/faq#modules"
+            reason: |
+              see https://developers.google.com/protocol-buffers/docs/reference/go/faq#modules
         - github.com/satori/go.uuid:
             recommendations:
               - github.com/google/uuid
@@ -202,12 +205,13 @@ linters-settings:
     context: "scope"
 
   tenv:
-    # The option `all` will run against whole test files (`_test.go`) regardless of method/function signatures.
-    # Otherwise, only methods that take `*testing.T`, `*testing.B`, and `testing.TB` as arguments are checked.
+    # The option `all` will run against whole test files (`_test.go`) regardless of 
+    # method/function signatures. Otherwise, only methods that take `*testing.T`, `*testing.B`,
+    # and `testing.TB` as arguments are checked.
     # Default: false
     all: true
 
-
+# yamllint disable rule: line-length
 linters:
   disable-all: true
   enable:
@@ -325,7 +329,7 @@ linters:
     #- tagliatelle # checks the struct tags
     #- thelper # detects golang test helpers without t.Helper() call and checks the consistency of test helpers
     #- wsl # [too strict and mostly code is not more readable] whitespace linter forces you to use empty lines
-
+# yamllint enable rule: line-length
 
 issues:
   # Maximum count of issues with the same text.

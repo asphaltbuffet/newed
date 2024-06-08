@@ -25,6 +25,7 @@ version=$(get_latest_tag "$repo_url")
 auto_completion=
 update_config=2
 shells="bash zsh"
+# shellcheck disable=SC2088
 prefix='~/.newed'
 prefix_expand=~/.newed
 
@@ -46,33 +47,34 @@ EOF
 }
 
 for opt in "$@"; do
-    case $opt in
-    --help)
-        help
-        exit 0
-        ;;
-    --all)
-        auto_completion=1
-        update_config=1
-        ;;
-    --xdg)
-        prefix='"${XDG_CONFIG_HOME:-$HOME/.config}"/newed/newed'
-        prefix_expand=${XDG_CONFIG_HOME:-$HOME/.config}/newed/newed
-        mkdir -p "${XDG_CONFIG_HOME:-$HOME/.config}/newed"
-        ;;
-    --completion) auto_completion=1 ;;
-    --no-completion) auto_completion=0 ;;
-    --update-rc) update_config=1 ;;
-    --no-update-rc) update_config=0 ;;
-    --bin) ;;
-    --no-bash) shells=${shells/bash/} ;;
-    --no-zsh) shells=${shells/zsh/} ;;
-    *)
-        echo "unknown option: $opt"
-        help
-        exit 1
-        ;;
-    esac
+	case $opt in
+	--help)
+		help
+		exit 0
+		;;
+	--all)
+		auto_completion=1
+		update_config=1
+		;;
+	--xdg)
+		# shellcheck disable=SC2016
+		prefix='"${XDG_CONFIG_HOME:-$HOME/.config}"/newed/newed'
+		prefix_expand=${XDG_CONFIG_HOME:-$HOME/.config}/newed/newed
+		mkdir -p "${XDG_CONFIG_HOME:-$HOME/.config}/newed"
+		;;
+	--completion) auto_completion=1 ;;
+	--no-completion) auto_completion=0 ;;
+	--update-rc) update_config=1 ;;
+	--no-update-rc) update_config=0 ;;
+	--bin) ;;
+	--no-bash) shells=${shells/bash/} ;;
+	--no-zsh) shells=${shells/zsh/} ;;
+	*)
+		echo "unknown option: $opt"
+		help
+		exit 1
+		;;
+	esac
 done
 
 cd "$(dirname "${BASH_SOURCE[0]}")"
@@ -276,37 +278,37 @@ EOF
 done
 
 append_line() {
-    set -e
+	set -e
 
-    local update line file pat lno
-    update="$1"
-    line="$2"
-    file="$3"
-    pat="${4:-}"
-    lno=""
+	local update line file pat lno
+	update="$1"
+	line="$2"
+	file="$3"
+	pat="${4:-}"
+	lno=""
 
-    echo "Update $file:"
-    echo "  - $line"
-    if [ -f "$file" ]; then
-        if [ $# -lt 4 ]; then
-            lno=$(\grep -nF "$line" "$file" | sed 's/:.*//' | tr '\n' ' ')
-        else
-            lno=$(\grep -nF "$pat" "$file" | sed 's/:.*//' | tr '\n' ' ')
-        fi
-    fi
-    if [ -n "$lno" ]; then
-        echo "    - Already exists: line #$lno"
-    else
-        if [ $update -eq 1 ]; then
-            [ -f "$file" ] && echo >>"$file"
-            echo "$line" >>"$file"
-            echo "    + Added"
-        else
-            echo "    ~ Skipped"
-        fi
-    fi
-    echo
-    set +e
+	echo "Update $file:"
+	echo "  - $line"
+	if [ -f "$file" ]; then
+		if [ $# -lt 4 ]; then
+			lno=$(\grep -nF "$line" "$file" | sed 's/:.*//' | tr '\n' ' ')
+		else
+			lno=$(\grep -nF "$pat" "$file" | sed 's/:.*//' | tr '\n' ' ')
+		fi
+	fi
+	if [ -n "$lno" ]; then
+		echo "    - Already exists: line #$lno"
+	else
+		if [ "$update" -eq 1 ]; then
+			[ -f "$file" ] && echo >>"$file"
+			echo "$line" >>"$file"
+			echo "    + Added"
+		else
+			echo "    ~ Skipped"
+		fi
+	fi
+	echo
+	set +e
 }
 
 create_file() {
@@ -328,8 +330,8 @@ fi
 
 echo
 for shell in $shells; do
-    [ $shell = zsh ] && dest=${ZDOTDIR:-~}/.zshrc || dest=~/.bashrc
-    append_line $update_config "[ -f ${prefix}.${shell} ] && source ${prefix}.${shell}" "$dest" "${prefix}.${shell}"
+	[ "$shell" = zsh ] && dest=${ZDOTDIR:-~}/.zshrc || dest=~/.bashrc
+	append_line $update_config "[ -f ${prefix}.${shell} ] && source ${prefix}.${shell}" "$dest" "${prefix}.${shell}"
 done
 
 if [ $update_config -eq 1 ]; then

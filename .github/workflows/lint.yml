@@ -63,3 +63,5 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           VALIDATE_GO: false
           VALIDATE_GO_MODULES: false
+          VALIDATE_JSCPD: false
+          FILTER_REGEX_EXCLUDE: '.*/docs/.*\.md$'
