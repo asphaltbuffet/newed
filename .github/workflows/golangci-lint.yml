@@ -1,23 +1,17 @@
-name: golangci-lint
+name: Linting
 on:
   push:
     branches:
       - main
-      - master
   pull_request:
-    paths:
-      - '**.go'
-      - '**/.golangci.yml'
-      - '**/golangci-lint.yml'
+    branches:
+      - main
 permissions:
   contents: read
-  # Optional: allow read access to pull request. Use with `only-new-issues` option.
-  # pull-requests: read
-  # Optional: Allow write access to checks to allow the action to annotate code in the PR.
   checks: write
 jobs:
   golangci:
-    name: lint
+    name: golangci
     runs-on: ubuntu-latest
     steps:
       - name: Clone Repository
@@ -44,3 +38,28 @@ jobs:
         uses: golangci/golangci-lint-action@v6
         with:
           version: v1.58
+  lint:
+    name: super-linter
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+      packages: read
+      # To report GitHub Actions status checks
+      statuses: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          # super-linter needs the full git history to get the
+          # list of files that changed across commits
+          fetch-depth: 0
+
+      - name: Super-linter
+        uses: super-linter/super-linter/slim@v6.6.0  # x-release-please-version
+        env:
+          # To report GitHub Actions status checks
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          VALIDATE_GO: false
+          VALIDATE_GO_MODULES: false

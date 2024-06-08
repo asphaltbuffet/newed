@@ -11,13 +11,9 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Download actionlint
-        id: get_actionlint
-        run: bash <(curl https://raw.githubusercontent.com/rhysd/actionlint/main/scripts/download-actionlint.bash)
-        shell: bash
-
       - name: Check workflow files
         run: |
           echo "::add-matcher::.github/actionlint-matcher.json"
-          ${{ steps.get_actionlint.outputs.executable }} -color
+          bash <(curl https://raw.githubusercontent.com/rhysd/actionlint/main/scripts/download-actionlint.bash)
+          ./actionlint -color
         shell: bash
