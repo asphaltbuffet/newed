@@ -8,6 +8,7 @@
 [![Common Changelog](https://common-changelog.org/badge.svg)](https://common-changelog.org)
 [![wakatime](https://wakatime.com/badge/user/09307b0e-8348-4b4e-9b67-0026db3fe1f5/project/f64b1b24-0d96-4b60-aa34-231273d60dc1.svg)](https://wakatime.com/badge/user/09307b0e-8348-4b4e-9b67-0026db3fe1f5/project/f64b1b24-0d96-4b60-aa34-231273d60dc1)
 
+[![codecov](https://codecov.io/github/asphaltbuffet/newed/graph/badge.svg?token=XI62P8PSWE)](https://codecov.io/github/asphaltbuffet/newed)
 [![CodeQL](https://github.com/asphaltbuffet/newed/workflows/CodeQL/badge.svg)](https://app.codecov.io/gh/asphaltbuffet/newed)
 [![Coverage](https://sonarcloud.io/api/project_badges/measure?project=asphaltbuffet_newed&metric=coverage)](https://sonarcloud.io/summary/new_code?id=asphaltbuffet_newed)
 [![Code Smells](https://sonarcloud.io/api/project_badges/measure?project=asphaltbuffet_newed&metric=code_smells)](https://sonarcloud.io/summary/new_code?id=asphaltbuffet_newed)
@@ -30,6 +31,9 @@
 ```sh
 go install github.com/asphaltbuffet/newed@latest
 ```
+## Usage
+
+See [command documentation](./docs/newed.md).
 
 ## Configuration
 
