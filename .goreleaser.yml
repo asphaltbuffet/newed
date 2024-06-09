@@ -2,11 +2,12 @@
 before:
   hooks:
     - go mod download
-    - go install golang.org/x/tools/cmd/stringer@latest
     - go generate ./...
 builds:
-  - ldflags:
-      - -s -w -X {{.ModulePath}}/cmd.Version={{.Summary}} -X {{.ModulePath}}/cmd.Date={{.Date}}
+  - flags:
+      - -trimpath
+    ldflags:
+      - "-s -w -X {{.ModulePath}}/cmd.version={{ .Version }} -X {{.ModulePath}}/cmd.revision={{ .ShortCommit}}"
     env:
       - CGO_ENABLED=0
     goos:
@@ -18,19 +19,17 @@ builds:
       - arm64
     ignore:
       - goos: darwin
-        goarch: "386"
-      - goos: darwin
         goarch: arm
       
 archives:
   - format: tgz
     name_template: >-
-      {{ .ProjectName }}_
-      {{- title .Os }}_
-      {{- if eq .Arch "amd64" }}x86-64
-      {{- else if eq .Arch "arm" }}arm-v6
-      {{- else if eq .Arch "arm64" }}arm-v8
-      {{- else }}{{ .Arch}}{{ end }}
+      {{ .ProjectName }}-
+      {{ .Version }}-
+      {{ .Os }}-
+      {{ if eq .Arch "amd64" }}x86_64
+      {{ else }}{{ .Arch}}{{ end }}
+      {{ if .Arm }}_v{{ .Arm }}{{ end }}
     files:
       - info:
           mtime: "{{ .CommitDate }}"
@@ -43,10 +42,13 @@ archives:
 checksum:
   name_template: 'checksums.txt'
 snapshot:
-  name_template: "{{ incpatch .Version }}-next-{{ .Now.Format \"0102-150405\" }}"
+  name_template: "{{ .Tag }}-dev"
 changelog:
   disable: true
 release:
+  github:
+    owner: asphaltbuffet
+    name: newed
   prerelease: auto
 announce:
   skip: 'true'

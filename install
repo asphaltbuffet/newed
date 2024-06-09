@@ -1,0 +1,351 @@
+#!/usr/bin/env bash
+
+set -u
+
+get_latest_tag() {
+	local repo_url=$1
+	local latest_tag
+
+	if command -v jq >/dev/null; then
+		latest_tag=$(curl -s "https://api.github.com/repos/${repo_url#https://github.com/}/tags" |
+			jq -r '.[0].name')
+	else
+		latest_tag=$(curl -s "https://api.github.com/repos/${repo_url#https://github.com/}/tags" |
+			grep '"name":' |
+			head -n 1 |
+			awk -F'"' '{print $4}')
+	fi
+
+	echo "$latest_tag"
+}
+
+repo_url="https://github.com/asphaltbuffet/newed"
+# version=v0.1.0
+version=$(get_latest_tag "$repo_url")
+auto_completion=
+update_config=2
+shells="bash zsh"
+# shellcheck disable=SC2088
+prefix='~/.newed'
+prefix_expand=~/.newed
+
+help() {
+	cat <<EOF
+usage: $0 [OPTIONS]
+
+    --help               Show this message
+    --bin                Download newed binary only; Do not generate ~/.newed.{bash,zsh}
+    --all                Download newed binary and update configuration files
+                         to enable auto-completion
+    --xdg                Generate files under \$XDG_CONFIG_HOME/newed
+    --[no-]completion    Enable/disable auto-completion (bash & zsh)
+    --[no-]update-rc     Whether or not to update shell configuration files
+
+    --no-bash            Do not set up bash configuration
+    --no-zsh             Do not set up zsh configuration
+EOF
+}
+
+for opt in "$@"; do
+	case $opt in
+	--help)
+		help
+		exit 0
+		;;
+	--all)
+		auto_completion=1
+		update_config=1
+		;;
+	--xdg)
+		# shellcheck disable=SC2016
+		prefix='"${XDG_CONFIG_HOME:-$HOME/.config}"/newed/newed'
+		prefix_expand=${XDG_CONFIG_HOME:-$HOME/.config}/newed/newed
+		mkdir -p "${XDG_CONFIG_HOME:-$HOME/.config}/newed"
+		;;
+	--completion) auto_completion=1 ;;
+	--no-completion) auto_completion=0 ;;
+	--update-rc) update_config=1 ;;
+	--no-update-rc) update_config=0 ;;
+	--bin) ;;
+	--no-bash) shells=${shells/bash/} ;;
+	--no-zsh) shells=${shells/zsh/} ;;
+	*)
+		echo "unknown option: $opt"
+		help
+		exit 1
+		;;
+	esac
+done
+
+cd "$(dirname "${BASH_SOURCE[0]}")"
+newed_base=$(pwd)
+newed_base_esc=$(printf %q "$newed_base")
+
+ask() {
+	while true; do
+		read -p "$1 ([y]/n) " -r
+		REPLY=${REPLY:-"y"}
+		if [[ $REPLY =~ ^[Yy]$ ]]; then
+			return 1
+		elif [[ $REPLY =~ ^[Nn]$ ]]; then
+			return 0
+		fi
+	done
+}
+
+check_binary() {
+	echo -n "  - Checking newed executable ... "
+	local output
+
+	if ! output=$("$newed_base"/bin/newed version 2>&1); then
+		echo "Error: $output"
+		binary_error="Invalid binary"
+	else
+		# remove revision from version output
+		output=${output/ */}
+		if [ "$version" != "$output" ]; then
+			echo "$output != $version"
+			binary_error="Invalid version"
+		else
+			echo "$output"
+			binary_error=""
+			return 0
+		fi
+	fi
+	rm -f "$newed_base"/bin/newed
+	return 1
+}
+
+link_newed_in_path() {
+	if which_newed="$(command -v newed)"; then
+		echo "  - Found in \$PATH"
+		echo "  - Creating symlink: bin/newed -> $which_newed"
+		(cd "$newed_base"/bin && rm -f newed && ln -sf "$which_newed" newed)
+		check_binary && return
+	fi
+	return 1
+}
+
+try_curl() {
+	command -v curl >/dev/null &&
+		if [[ $1 =~ tar.gz$ ]]; then
+			curl -# -fL "$1" | tar --no-same-owner -xzf -
+		else
+			local temp=${TMPDIR:-/tmp}/newed.zip
+			curl -# -fLo "$temp" "$1" && unzip -o "$temp" && rm -f "$temp"
+		fi
+}
+
+try_wget() {
+	command -v wget >/dev/null &&
+		if [[ $1 =~ tar.gz$ ]]; then
+			wget --progress=bar:force -O - "$1" 2>&1 | tar --no-same-owner -xzf -
+		else
+			local temp=${TMPDIR:-/tmp}/newed.zip
+			wget --progress=bar:force -O "$temp" "$1" && unzip -o "$temp" && rm -f "$temp"
+		fi
+}
+
+download() {
+	echo "Downloading bin/newed ..."
+	if [ -x "$newed_base"/bin/newed ]; then
+		echo "  - Already exists"
+		check_binary && return
+	fi
+
+	link_newed_in_path && return
+
+	if ! (mkdir -p "$newed_base"/bin && cd "$newed_base"/bin); then
+		binary_error="Failed to create bin directory"
+		return
+	fi
+
+	local url
+	url=$repo_url/releases/download/$version/${1}
+	set -o pipefail
+	if ! (try_curl "$url" || try_wget "$url"); then
+		set +o pipefail
+		binary_error="Failed to download with curl and wget"
+		return
+	fi
+
+	set +o pipefail
+
+	if [ ! -f newed ]; then
+		binary_error="Failed to download ${1}"
+		return
+	fi
+
+	chmod +x newed && check_binary
+}
+
+# Try to download binary executable
+archi=$(uname -sm)
+binary_available=1
+binary_error=""
+case "$archi" in
+Darwin\ arm64) download newed-"$version"-darwin-arm_v8.tgz ;;
+Darwin\ x86_64) download newed-"$version"-darwin-x86_64.tgz ;;
+Linux\ armv6*) download newed-"$version"-linux-arm_v6.tgz ;;
+Linux\ armv8*) download newed-"$version"-linux-arm_v8.tgz ;;
+Linux\ *64) download newed-"$version"-linux-x86_64.tgz ;;
+*) binary_available=0 binary_error=1 ;;
+esac
+
+cd "$newed_base"
+if [ -n "$binary_error" ]; then
+	if [ $binary_available -eq 0 ]; then
+		echo "No prebuilt binary for $archi ..."
+	else
+		echo "  - $binary_error !!!"
+	fi
+
+	if command -v go >/dev/null; then
+		echo -n "Building binary (go install github.com/asphaltbuffet/newed) ... "
+		if [ -z "${GOPATH-}" ]; then
+			export GOPATH="${TMPDIR:-/tmp}/newed-gopath"
+			mkdir -p "$GOPATH"
+		fi
+
+		version_flag="github.com/asphaltbuffet/newed/cmd.version=$version"
+		revision_flag="github.com/asphaltbuffet/newed/cmd.revision=go-install"
+		if go install -ldflags "-s -w -X $version_flag -X $revision_flag" github.com/asphaltbuffet/newed; then
+			echo "OK"
+			cp "$GOPATH/bin/newed" "$newed_base/bin/"
+		else
+			echo "Failed to build binary. Installation failed."
+			exit 1
+		fi
+	else
+		echo "go executable not found. Installation failed."
+		exit 1
+	fi
+fi
+
+[[ "$*" =~ "--bin" ]] && exit 0
+
+for s in $shells; do
+	if ! command -v "$s" >/dev/null; then
+		shells=${shells/$s/}
+	fi
+done
+
+if [[ ${#shells} -lt 3 ]]; then
+	echo "No shell configuration to be updated."
+	exit 0
+fi
+
+# Auto-completion
+if [ -z "$auto_completion" ]; then
+	ask "Do you want to enable auto-completion?"
+	auto_completion=$?
+fi
+
+echo
+for shell in $shells; do
+	[[ "$shell" = fish ]] && continue
+	src=${prefix_expand}.${shell}
+	echo -n "Generate $src ... "
+
+	newed_completion="source \"$newed_base/shell/completion.${shell}\""
+	if [ $auto_completion -eq 0 ]; then
+		newed_completion="# $newed_completion"
+	fi
+
+	cat >"$src" <<EOF
+# Setup newed
+# ---------
+if [[ ! "\$PATH" == *$newed_base_esc/bin* ]]; then
+  PATH="\${PATH:+\${PATH}:}$newed_base/bin"
+fi
+
+EOF
+
+	if [[ $auto_completion -eq 1 ]]; then
+		if [[ "$shell" = zsh ]]; then
+			echo "source <(newed --$shell)" >>"$src"
+		else
+			echo "eval \"\$(newed --$shell)\"" >>"$src"
+		fi
+	else
+		cat >>"$src" <<EOF
+# Auto-completion
+# ---------------
+$newed_completion
+EOF
+	fi
+	echo "OK"
+done
+
+append_line() {
+	set -e
+
+	local update line file pat lno
+	update="$1"
+	line="$2"
+	file="$3"
+	pat="${4:-}"
+	lno=""
+
+	echo "Update $file:"
+	echo "  - $line"
+	if [ -f "$file" ]; then
+		if [ $# -lt 4 ]; then
+			lno=$(\grep -nF "$line" "$file" | sed 's/:.*//' | tr '\n' ' ')
+		else
+			lno=$(\grep -nF "$pat" "$file" | sed 's/:.*//' | tr '\n' ' ')
+		fi
+	fi
+	if [ -n "$lno" ]; then
+		echo "    - Already exists: line #$lno"
+	else
+		if [ "$update" -eq 1 ]; then
+			[ -f "$file" ] && echo >>"$file"
+			echo "$line" >>"$file"
+			echo "    + Added"
+		else
+			echo "    ~ Skipped"
+		fi
+	fi
+	echo
+	set +e
+}
+
+create_file() {
+	local file="$1"
+	shift
+	echo "Create $file:"
+	for line in "$@"; do
+		echo "    $line"
+		echo "$line" >>"$file"
+	done
+	echo
+}
+
+if [ $update_config -eq 2 ]; then
+	echo
+	ask "Do you want to update your shell configuration files?"
+	update_config=$?
+fi
+
+echo
+for shell in $shells; do
+	[ "$shell" = zsh ] && dest=${ZDOTDIR:-~}/.zshrc || dest=~/.bashrc
+	append_line $update_config "[ -f ${prefix}.${shell} ] && source ${prefix}.${shell}" "$dest" "${prefix}.${shell}"
+done
+
+if [ $update_config -eq 1 ]; then
+	echo 'Finished. Restart your shell or reload config file.'
+	if [[ "$shells" =~ bash ]]; then
+		echo -n '   source ~/.bashrc  # bash'
+		[[ "$archi" =~ Darwin ]] && echo -n '  (.bashrc should be loaded from .bash_profile)'
+		echo
+	fi
+
+	[[ "$shells" =~ zsh ]] && echo "   source ${ZDOTDIR:-~}/.zshrc   # zsh"
+	echo
+	echo 'Use uninstall script to remove newed.'
+	echo
+fi
+
+echo 'For more information, see: https://github.com/asphaltbuffet/newed'

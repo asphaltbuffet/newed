@@ -10,8 +10,8 @@ import (
 
 // application build information set by the linker.
 var (
-	Version string
-	Date    string
+	version  string
+	revision string
 )
 
 var rootCmd *cobra.Command
@@ -30,7 +30,7 @@ func GetRootCommand() *cobra.Command {
 	if rootCmd == nil {
 		rootCmd = &cobra.Command{
 			Use:     "newed",
-			Version: fmt.Sprintf("%s\n%s", Version, Date),
+			Version: fmt.Sprintf("%s (%s)", version, revision),
 			Short:   "newed creates projects from templates",
 			Args:    cobra.NoArgs,
 		}
@@ -38,6 +38,7 @@ func GetRootCommand() *cobra.Command {
 		rootCmd.PersistentFlags().StringP("config", "c", "", "configuration file")
 		rootCmd.PersistentFlags().StringSliceP("templates", "t", []string{}, "template(s) to apply")
 
+		rootCmd.AddCommand(GetVersionCmd())
 		rootCmd.AddCommand(GetListCmd())
 		rootCmd.AddCommand(GetApplyCmd())
 	}
