@@ -13,9 +13,14 @@
 - Bump goreleaser to v2 ([#9](https://github.com/asphaltbuffet/newed/pull/9))
 - Use shared action for govulncheck ([#9](https://github.com/asphaltbuffet/newed/pull/9))
 
+### Removed
+
+- Remove separate actionlint workflow in favor of superlinter ([#10](https://github.com/asphaltbuffet/newed/pull/10))
+
 ### Fixed
 
 - Fix format linting errors ([#9](https://github.com/asphaltbuffet/newed/pull/9))
+- Fix extra dot characters in packaged filenames ([#10](https://github.com/asphaltbuffet/newed/pull/10))
 
 ## [0.1.0] - 2024-06-02
 
