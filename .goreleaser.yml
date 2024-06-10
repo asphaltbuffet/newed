@@ -25,11 +25,11 @@ archives:
   - format: tgz
     name_template: >-
       {{ .ProjectName }}-
-      {{ .Version }}-
-      {{ .Os }}-
-      {{ if eq .Arch "amd64" }}x86_64
-      {{ else }}{{ .Arch}}{{ end }}
-      {{ if .Arm }}_v{{ .Arm }}{{ end }}
+      {{- .Version }}-
+      {{- .Os }}-
+      {{- if eq .Arch "amd64" }}x86_64
+      {{- else }}{{ .Arch}}{{ end }}
+      {{- if .Arm }}_v{{ .Arm }}{{ end }}
     files:
       - info:
           mtime: "{{ .CommitDate }}"
