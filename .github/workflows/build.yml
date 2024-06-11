@@ -14,6 +14,13 @@ permissions:
 jobs:
   govulncheck:
     uses: asphaltbuffet/.github/.github/workflows/vulncheck.yml@main
+  analyze:
+    permissions:
+      contents: read
+      actions: read
+      packages: read
+      security-events: write
+    uses: asphaltbuffet/.github/.github/workflows/codeql.yml@main
   ci:
     name: Build and Test
     strategy:
