@@ -53,7 +53,7 @@ GITHUB_STATUS_REPORTER: true
 # PLUGINS:
 #   - https://raw.githubusercontent.com/oxsecurity/megalinter/main/.automation/test/mega-linter-plugin-test/test.megalinter-descriptor.yml
 PRE_COMMANDS:
-  - command: echo "This is MegaLinter PRE_COMMAND"
+  - command: echo "USING GO VERSION = $(go version)"
     cwd: "root"
 POST_COMMANDS:
   - command: echo "This is MegaLinter POST_COMMAND"
