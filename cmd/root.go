@@ -3,8 +3,8 @@ package cmd
 
 import (
 	"fmt"
-	"os"
 
+	"github.com/caarlos0/log"
 	"github.com/spf13/cobra"
 )
 
@@ -21,7 +21,7 @@ var rootCmd *cobra.Command
 func Execute() {
 	err := GetRootCommand().Execute()
 	if err != nil {
-		os.Exit(1)
+		log.WithError(err).Fatal("fatal error")
 	}
 }
 
