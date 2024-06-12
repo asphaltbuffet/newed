@@ -42,6 +42,7 @@ func GetApplyCmd() *cobra.Command {
 
 		applyCmd.Flags().BoolP("dry-run", "n", false, "show what would be done without actually doing it")
 		applyCmd.Flags().StringSliceP("templates", "t", []string{}, "template(s) to apply")
+		_ = applyCmd.MarkFlagRequired("templates")
 	}
 
 	return applyCmd
