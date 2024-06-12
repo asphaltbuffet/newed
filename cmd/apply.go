@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/caarlos0/log"
@@ -55,22 +56,24 @@ func runApplyCmd(cmd *cobra.Command, args []string) error {
 
 	tmpls := make(newed.Templates)
 
-	if err = tmpls.Load(cfg.GetTemplateDirs()...); err != nil {
+	if err := tmpls.Load(cfg.GetTemplateDirs()...); err != nil {
 		return fmt.Errorf("loading templates: %w", err)
 	}
 
 	templateFlags, err := cmd.Flags().GetStringSlice("templates")
 	if err != nil {
-		return err
+		log.WithError(err).Error("reading template flags")
+		return errors.New("invalid input")
 	}
 
 	isNoop, err := cmd.Flags().GetBool("dry-run")
 	if err != nil {
-		return err
+		log.WithError(err).Error("reading dry-run flag")
+		return errors.New("invalid input")
 	}
 
 	if err = tmpls.Apply(templateFlags, args[0], isNoop); err != nil {
-		return err
+		return errors.New("failed to apply templates")
 	}
 
 	return nil
