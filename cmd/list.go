@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/caarlos0/log"
 	"github.com/spf13/cobra"
 
 	"github.com/asphaltbuffet/newed/internal/config"
@@ -21,7 +22,20 @@ func GetListCmd() *cobra.Command {
 			Use:     "list [-s|--show-sub-templates] [template dir]...",
 			Aliases: []string{"l", "ls"},
 			Short:   "list all templates",
-			RunE:    runListCmd,
+			PreRun: func(cmd *cobra.Command, _ []string) {
+				cf, err := cmd.Flags().GetString("config")
+				if err != nil {
+					log.WithError(err).Fatal("getting config filename")
+				}
+
+				log.WithField("file", cf).Info("loading configuration")
+
+				cfg, err = config.New(config.WithFile(cf))
+				if err != nil {
+					log.WithError(err).Fatal("loading config file")
+				}
+			},
+			RunE: runListCmd,
 		}
 
 		listCmd.Flags().BoolVarP(&showSub, "show-sub-templates", "s", false, "show sub-templates")
@@ -31,13 +45,6 @@ func GetListCmd() *cobra.Command {
 }
 
 func runListCmd(cmd *cobra.Command, args []string) error {
-	cf, _ := cmd.Flags().GetString("config-file")
-
-	cfg, err := config.New(config.WithFile(cf))
-	if err != nil {
-		return err
-	}
-
 	tColl, err := newed.New(cfg)
 	if err != nil {
 		return err
