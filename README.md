@@ -6,7 +6,7 @@
 [![go.mod](https://img.shields.io/github/go-mod/go-version/asphaltbuffet/newed)](go.mod)
 [![GitHub License](https://img.shields.io/github/license/asphaltbuffet/newed)](LICENSE)
 [![Common Changelog](https://common-changelog.org/badge.svg)](https://common-changelog.org)
-[![wakatime](https://wakatime.com/badge/user/09307b0e-8348-4b4e-9b67-0026db3fe1f5/project/f64b1b24-0d96-4b60-aa34-231273d60dc1.svg)](https://wakatime.com/badge/user/09307b0e-8348-4b4e-9b67-0026db3fe1f5/project/f64b1b24-0d96-4b60-aa34-231273d60dc1)
+[![wakatime](https://wakatime.com/badge/github/asphaltbuffet/newed.svg)](https://wakatime.com/badge/github/asphaltbuffet/newed)
 
 [![codecov](https://codecov.io/github/asphaltbuffet/newed/graph/badge.svg?token=XI62P8PSWE)](https://codecov.io/github/asphaltbuffet/newed)
 [![CodeQL](https://github.com/asphaltbuffet/newed/workflows/CodeQL/badge.svg)](https://app.codecov.io/gh/asphaltbuffet/newed)

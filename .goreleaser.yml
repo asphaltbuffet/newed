@@ -46,7 +46,7 @@ archives:
       - src: LICENSE*
         dst: docs
 checksum:
-  name_template: 'checksums.txt'
+  name_template: "checksums.txt"
 snapshot:
   name_template: "{{ .Tag }}-dev"
 changelog:
@@ -57,4 +57,4 @@ release:
     name: newed
   prerelease: auto
 announce:
-  skip: 'true'
+  skip: "true"
