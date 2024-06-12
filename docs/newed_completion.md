@@ -17,8 +17,7 @@ See each sub-command's help for details on how to use the generated script.
 ### Options inherited from parent commands
 
 ```
-  -c, --config string       configuration file
-  -t, --templates strings   template(s) to apply
+  -c, --config string   configuration file
 ```
 
 ### SEE ALSO

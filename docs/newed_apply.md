@@ -9,15 +9,15 @@ newed apply [flags] <path/to/dest>
 ### Options
 
 ```
-  -n, --dry-run   show what would be done without actually doing it
-  -h, --help      help for apply
+  -n, --dry-run             show what would be done without actually doing it
+  -h, --help                help for apply
+  -t, --templates strings   template(s) to apply
 ```
 
 ### Options inherited from parent commands
 
 ```
-  -c, --config string       configuration file
-  -t, --templates strings   template(s) to apply
+  -c, --config string   configuration file
 ```
 
 ### SEE ALSO

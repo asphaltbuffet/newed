@@ -39,11 +39,10 @@ func GetRootCommand() *cobra.Command {
 		}
 
 		rootCmd.PersistentFlags().StringP("config", "c", "", "configuration file")
-		rootCmd.PersistentFlags().StringSliceP("templates", "t", []string{}, "template(s) to apply")
 
-		rootCmd.AddCommand(GetVersionCmd())
-		rootCmd.AddCommand(GetListCmd())
 		rootCmd.AddCommand(GetApplyCmd())
+		rootCmd.AddCommand(GetListCmd())
+		rootCmd.AddCommand(GetVersionCmd())
 	}
 
 	return rootCmd

@@ -2,12 +2,15 @@
 
 newed creates projects from templates
 
+```
+newed [flags]
+```
+
 ### Options
 
 ```
-  -c, --config string       configuration file
-  -h, --help                help for newed
-  -t, --templates strings   template(s) to apply
+  -c, --config string   configuration file
+  -h, --help            help for newed
 ```
 
 ### SEE ALSO
