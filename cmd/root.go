@@ -33,6 +33,9 @@ func GetRootCommand() *cobra.Command {
 			Version: fmt.Sprintf("%s (%s)", version, revision),
 			Short:   "newed creates projects from templates",
 			Args:    cobra.NoArgs,
+			Run: func(cmd *cobra.Command, _ []string) {
+				_ = cmd.Help()
+			},
 		}
 
 		rootCmd.PersistentFlags().StringP("config", "c", "", "configuration file")
