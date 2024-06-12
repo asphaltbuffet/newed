@@ -26,7 +26,7 @@ DISABLE_LINTERS:
 #   - REPOSITORY_TRUFFLEHOG
 #   - SPELL_LYCHEE
 PRINT_ALL_FILES: false
-FILTER_REGEX_EXCLUDE: '(testdata|\.git)'
+FILTER_REGEX_EXCLUDE: '(testdata|\.git|\.vscode)'
 JSON_JSONLINT_FILTER_REGEX_EXCLUDE: '(\.vscode/)'
 # YAML_V8R_FILTER_REGEX_EXCLUDE: '(descriptors|templates/\.mega-linter\.yml|\.codecov\.yml)'
 # BASH_FILTER_REGEX_EXCLUDE: "(lib)"
