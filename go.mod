@@ -1,6 +1,6 @@
 module github.com/asphaltbuffet/newed
 
-go 1.22
+go 1.22.3
 
 require (
 	github.com/spf13/afero v1.11.0
