@@ -14,14 +14,7 @@ permissions:
 jobs:
   govulncheck:
     uses: asphaltbuffet/.github/.github/workflows/vulncheck.yml@main
-  codeql:
-    permissions:
-      contents: read
-      actions: read
-      packages: read
-      security-events: write
-    uses: asphaltbuffet/.github/.github/workflows/codeql.yml@main
-  ci:
+  test:
     name: Build and Test
     strategy:
       fail-fast: true
@@ -64,7 +57,7 @@ jobs:
           flags: ${{ runner.os }}
 
   sonarCloudTrigger:
-    needs: ci
+    needs: test
     name: SonarCloud Trigger
     runs-on: ubuntu-latest
     steps:
@@ -86,8 +79,31 @@ jobs:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
 
   snapshot:
-    needs: ci
-    name: Release Test
-    uses: asphaltbuffet/.github/.github/workflows/release.yml@main
-    with:
-      snapshot: true
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: stable
+      - uses: crazy-max/ghaction-upx@v3
+        with:
+          install-only: true
+      # More assembly might be required: Docker logins, GPG, etc.
+      # It all depends on your needs.
+      - name: Release Test
+        uses: goreleaser/goreleaser-action@v6
+        with:
+          # either 'goreleaser' (default) or 'goreleaser-pro'
+          distribution: goreleaser-pro
+          # 'latest', 'nightly', or a semver
+          version: "~> v2"
+          args: release --clean --snapshot
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # Your GoReleaser Pro key, if you are using the 'goreleaser-pro' distribution
+          GORELEASER_KEY: ${{ secrets.GORELEASER_KEY }}

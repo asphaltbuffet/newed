@@ -1,5 +1,5 @@
-# yaml-language-server: $schema=https://goreleaser.com/static/schema.json
-
+# yaml-language-server: $schema=https://goreleaser.com/static/schema-pro.json
+---
 version: 2
 
 before:
@@ -56,5 +56,9 @@ release:
     owner: asphaltbuffet
     name: newed
   prerelease: auto
+nightly:
+  tag_name: "{{ .Version }}-nightly"
+  publish_release: true
+  keep_single_release: true
 announce:
   skip: "true"
