@@ -6,11 +6,12 @@ before:
   hooks:
     - go mod download
     - go generate ./...
+    - ./scripts/completions.sh
 builds:
   - flags:
       - -trimpath
     ldflags:
-      - "-s -w -X {{.ModulePath}}/cmd.version={{ .Version }} -X {{.ModulePath}}/cmd.revision={{ .ShortCommit}}"
+      - "-s -w -X {{.ModulePath}}/cmd.version={{ .Version }} -X {{.ModulePath}}/cmd.revision={{ .ShortCommit }}"
     env:
       - CGO_ENABLED=0
     goos:
@@ -45,10 +46,12 @@ archives:
         dst: docs
       - src: LICENSE*
         dst: docs
+      - src: completions/newed.*
+        dst: completions
 checksum:
   name_template: "checksums.txt"
 snapshot:
-  name_template: "{{ .Tag }}-dev"
+  name_template: "{{ .Tag }}-snapshot"
 changelog:
   disable: true
 release:
@@ -57,7 +60,7 @@ release:
     name: newed
   prerelease: auto
 nightly:
-  tag_name: "{{ .Version }}-nightly"
+  tag_name: devel
   publish_release: true
   keep_single_release: true
 announce:
