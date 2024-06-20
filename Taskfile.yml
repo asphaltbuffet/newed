@@ -97,9 +97,13 @@ tasks:
   #         - if ! command -v mockery &> /dev/null; then exit 1; fi
 
   build:
-    desc: go build
+    desc: build the binary
+    sources:
+      - ./**/*.go
+    generates:
+      - ./newed
     cmds:
-      - go build -o dist/ ./...
+      - go build
 
   snapshot:
     desc: goreleaser build snapshot
@@ -122,6 +126,15 @@ tasks:
       - ".golangci.yml"
     generates:
       - bin/golangci-lint.html
+
+  precommit:
+    desc: set up precommit hook
+    cmds:
+      - cp -f scripts/pre-commit.sh .git/hooks/pre-commit
+    sources:
+      - scripts/pre-commit.sh
+    generates:
+      - .git/hooks/pre-commit
 
   test:
     desc: go test
