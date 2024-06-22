@@ -166,3 +166,4 @@ bin/
 # generated files
 mocks/
 **/*_string.go
+completions/
